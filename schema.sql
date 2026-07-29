@@ -24,19 +24,23 @@ create table if not exists public.results (
 -- Row Level Security: every query is automatically scoped to the signed-in user.
 alter table public.results enable row level security;
 
+drop policy if exists "results are readable by owner" on public.results;
 create policy "results are readable by owner"
   on public.results for select
   using (auth.uid() = user_id);
 
+drop policy if exists "results are insertable by owner" on public.results;
 create policy "results are insertable by owner"
   on public.results for insert
   with check (auth.uid() = user_id);
 
+drop policy if exists "results are updatable by owner" on public.results;
 create policy "results are updatable by owner"
   on public.results for update
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
 
+drop policy if exists "results are deletable by owner" on public.results;
 create policy "results are deletable by owner"
   on public.results for delete
   using (auth.uid() = user_id);

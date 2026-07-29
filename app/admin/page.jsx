@@ -16,11 +16,11 @@ export default async function AdminPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return <Gate title="Page not found" msg="This page could not be found." />;
+  if (!user) return <Gate title="Sign in required" msg="Sign in with an admin account to view this page." />;
 
   const { data, error } = await supabase.rpc("get_admin_stats");
   if (error || !data) {
-    return <Gate title="Page not found" msg="This page could not be found." />;
+    return <Gate title="No access" msg="This account isn't on the admin allowlist." />;
   }
 
   const days = data.signups_by_day || [];

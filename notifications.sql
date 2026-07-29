@@ -12,10 +12,13 @@ create table if not exists public.notification_state (
 alter table public.notification_state enable row level security;
 
 -- Users can see and change their own preference (for an opt-out toggle later).
+drop policy if exists "notif state readable by owner" on public.notification_state;
 create policy "notif state readable by owner"
   on public.notification_state for select using (auth.uid() = user_id);
+drop policy if exists "notif state insertable by owner" on public.notification_state;
 create policy "notif state insertable by owner"
   on public.notification_state for insert with check (auth.uid() = user_id);
+drop policy if exists "notif state updatable by owner" on public.notification_state;
 create policy "notif state updatable by owner"
   on public.notification_state for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
 

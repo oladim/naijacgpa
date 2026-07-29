@@ -53,11 +53,20 @@ export default function PrivacyPage() {
       <h2>Service providers</h2>
       <p>We share information only with providers that help us run NaijaCGPA:</p>
       <ul>
-        <li><strong>Google</strong> — sign-in.</li>
+        <li><strong>Google</strong> — sign-in, and Google Analytics for usage statistics.</li>
         <li><strong>Supabase</strong> — secure database and authentication.</li>
         <li><strong>Resend</strong> — sending emails.</li>
         <li><strong>Our hosting provider</strong> — serving the website.</li>
       </ul>
+
+      <h2>Cookies and analytics</h2>
+      <p>
+        We use a small number of cookies to keep you signed in and to run the service. We also use
+        Google Analytics, which sets cookies to help us understand how the app is used (for example,
+        which pages are visited and how many people return) so we can improve it. This data is
+        aggregated and is not used to identify you personally. You can block or clear cookies in your
+        browser settings, though some features may then not work as intended.
+      </p>
 
       <h2>Your choices</h2>
       <ul>
