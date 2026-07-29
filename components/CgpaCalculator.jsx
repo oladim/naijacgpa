@@ -14,7 +14,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
  *   and swap the DOMAIN constant below for your real domain in the share text.
  */
 
-const DOMAIN = "naijacgpa.app"; // <-- change to your real domain
+const DOMAIN = "naijacgpa.com"; // <-- change to your real domain
 
 const LEVELS = {
   undergrad: {
