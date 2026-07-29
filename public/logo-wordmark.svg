@@ -1,0 +1,30 @@
+<svg width="560" height="180" viewBox="0 0 560 180" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NaijaCGPA">
+  <defs>
+    <linearGradient id="bg2" x1="30" y1="20" x2="150" y2="160" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#16C176"/>
+      <stop offset="0.55" stop-color="#0F9A5E"/>
+      <stop offset="1" stop-color="#0A6E45"/>
+    </linearGradient>
+    <linearGradient id="gold2" x1="70" y1="46" x2="122" y2="76" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6CD5B"/>
+      <stop offset="1" stop-color="#E3A72E"/>
+    </linearGradient>
+  </defs>
+
+  <!-- icon -->
+  <g transform="translate(20,20) scale(0.273)">
+    <rect x="0" y="0" width="480" height="480" rx="116" fill="url(#bg2)"/>
+    <g stroke="#FFFFFF" stroke-width="46" stroke-linecap="round" stroke-linejoin="round" fill="none">
+      <path d="M134 356 L232 198"/>
+      <path d="M346 356 L248 198"/>
+      <path d="M182 296 L298 296"/>
+    </g>
+    <path d="M240 132 L318 174 L240 216 L162 174 Z" fill="url(#gold2)"/>
+    <circle cx="240" cy="174" r="15" fill="#0F9A5E"/>
+  </g>
+
+  <!-- wordmark: convert to outlines before shipping for pixel-perfect rendering -->
+  <text x="168" y="112" font-family="'Bricolage Grotesque','Poppins','Segoe UI',sans-serif" font-size="66" font-weight="800" letter-spacing="-2">
+    <tspan fill="#0B1F18">Naija</tspan><tspan fill="#0F9A5E">CGPA</tspan>
+  </text>
+</svg>

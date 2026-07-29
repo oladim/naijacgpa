@@ -1,0 +1,33 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="NaijaCGPA logo">
+  <defs>
+    <linearGradient id="bg" x1="96" y1="40" x2="416" y2="472" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#16C176"/>
+      <stop offset="0.55" stop-color="#0F9A5E"/>
+      <stop offset="1" stop-color="#0A6E45"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="182" y1="150" x2="330" y2="226" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F6CD5B"/>
+      <stop offset="1" stop-color="#E3A72E"/>
+    </linearGradient>
+    <linearGradient id="sheen" x1="256" y1="24" x2="256" y2="300" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffffff" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#bg)"/>
+  <rect x="16" y="16" width="480" height="480" rx="116" fill="url(#sheen)"/>
+
+  <!-- the rising "A" -->
+  <g stroke="#FFFFFF" stroke-width="46" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <path d="M150 372 L248 214"/>
+    <path d="M362 372 L264 214"/>
+    <path d="M198 312 L314 312"/>
+  </g>
+
+  <!-- graduation cap on top -->
+  <path d="M256 148 L334 190 L256 232 L178 190 Z" fill="url(#gold)"/>
+  <circle cx="256" cy="190" r="15" fill="#0F9A5E"/>
+  <path d="M334 190 L334 168" stroke="url(#gold)" stroke-width="8" stroke-linecap="round"/>
+  <circle cx="334" cy="162" r="10" fill="url(#gold)"/>
+</svg>
