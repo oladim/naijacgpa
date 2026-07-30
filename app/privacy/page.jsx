@@ -3,7 +3,7 @@ import LegalPage from "@/components/LegalPage";
 // NOTE: Starter template — not legal advice. Replace the placeholders below
 // (contact email, effective date) and have it reviewed, including for Nigeria's
 // NDPR, before relying on it.
-const CONTACT = "nexitafrica@gmail.com"; // <-- change this
+const CONTACT = "support@yourdomain.com"; // <-- change this
 
 export const metadata = {
   title: "Privacy Policy — NaijaCGPA",

@@ -52,6 +52,36 @@ create trigger results_touch_updated
 create index if not exists results_user_created_idx
   on public.results (user_id, created_at desc);
 
+-- ---------- 1b. user_state (ONE row per user — their working data) ----------
+-- Saving from the app upserts this row, so a user keeps a single, evolving
+-- record that preloads on any device they log in from.
+create table if not exists public.user_state (
+  user_id            uuid primary key references auth.users (id) on delete cascade,
+  current_courses    jsonb not null default '[]'::jsonb,
+  previous_semesters jsonb not null default '[]'::jsonb,
+  graduation_target  jsonb not null default '{}'::jsonb,
+  meta               jsonb not null default '{}'::jsonb,
+  cgpa               numeric(4,2),
+  class_name         text,
+  updated_at         timestamptz not null default now()
+);
+alter table public.user_state enable row level security;
+
+drop policy if exists "user_state readable by owner" on public.user_state;
+create policy "user_state readable by owner"
+  on public.user_state for select using (auth.uid() = user_id);
+drop policy if exists "user_state insertable by owner" on public.user_state;
+create policy "user_state insertable by owner"
+  on public.user_state for insert with check (auth.uid() = user_id);
+drop policy if exists "user_state updatable by owner" on public.user_state;
+create policy "user_state updatable by owner"
+  on public.user_state for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+drop trigger if exists user_state_touch_updated on public.user_state;
+create trigger user_state_touch_updated
+  before update on public.user_state
+  for each row execute function public.touch_updated_at();
+
 -- ---------- 2. admins ----------
 create table if not exists public.admins (
   email text primary key

@@ -85,9 +85,9 @@ function Gate({ title, msg }) {
   );
 }
 
-const mono = "'JetBrains Mono', ui-monospace, monospace";
+const mono = "Poppins, system-ui, sans-serif";
 const s = {
-  page: { maxWidth: 720, margin: "0 auto", padding: 20, fontFamily: "Inter, system-ui, sans-serif", color: "#132A22" },
+  page: { maxWidth: 720, margin: "0 auto", padding: 20, fontFamily: "Poppins, system-ui, sans-serif", color: "#132A22" },
   head: { display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 18 },
   h1: { fontSize: 26, fontWeight: 800, margin: 0, color: "#0B1F18" },
   back: { fontSize: 13, color: "#0F8A5F", textDecoration: "none", fontWeight: 600 },
@@ -102,7 +102,7 @@ const s = {
   bar: { width: "100%", maxWidth: 34, minHeight: 4, background: "linear-gradient(#12B76A,#0F8A5F)", borderRadius: "6px 6px 0 0" },
   barDay: { fontSize: 10, color: "#8A968F", marginTop: 6, whiteSpace: "nowrap" },
   empty: { color: "#5B6B62", fontSize: 14, margin: 0 },
-  gate: { maxWidth: 480, margin: "80px auto", padding: 24, textAlign: "center", fontFamily: "Inter, system-ui, sans-serif" },
+  gate: { maxWidth: 480, margin: "80px auto", padding: 24, textAlign: "center", fontFamily: "Poppins, system-ui, sans-serif" },
   gateTitle: { fontSize: 22, color: "#0B1F18", margin: "0 0 8px" },
   gateMsg: { color: "#5B6B62", margin: "0 0 20px" },
 };

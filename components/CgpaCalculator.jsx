@@ -14,7 +14,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
  *   and swap the DOMAIN constant below for your real domain in the share text.
  */
 
-const DOMAIN = "naijacgpa.com"; // <-- change to your real domain
+const DOMAIN = "naijacgpa.app"; // <-- change to your real domain
 
 const LEVELS = {
   undergrad: {
@@ -118,7 +118,13 @@ function classify(cgpa, sys) {
   return sys.classes.find((c) => cgpa >= c.min) || sys.classes[sys.classes.length - 1];
 }
 
-export default function CgpaCalculator({ onSave, saving = false, storage } = {}) {
+export default function CgpaCalculator({
+  onSave,
+  saving = false,
+  storage,
+  initialState = null,
+  saveLabel = "Save my result to my account",
+} = {}) {
   const [level, setLevel] = useState("undergrad");
   const [scale, setScale] = useState("5");
   const [inputMode, setInputMode] = useState("grade"); // "grade" | "score"
@@ -356,6 +362,17 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
     setReady(true);
   }, [storage]);
 
+  // When account data loads (after login), apply it — it wins over the local draft
+  // so the same account looks the same on every device.
+  const accountApplied = useRef(false);
+  useEffect(() => {
+    if (!initialState || accountApplied.current) return;
+    accountApplied.current = true;
+    applyDraft(initialState);
+    setReady(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialState]);
+
   useEffect(() => {
     if (!ready || !storage?.save) return;
     const t = setTimeout(() => {
@@ -454,80 +471,109 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
 
     // eyebrow
     ctx.fillStyle = "#E8B23A";
-    ctx.font = "600 30px 'JetBrains Mono', monospace";
+    ctx.font = "600 30px Poppins, system-ui, sans-serif";
     ctx.fillText("R E S U L T   C A R D", W / 2, 200);
 
     // name / label
     ctx.fillStyle = "rgba(255,255,255,0.75)";
-    ctx.font = "500 40px Inter, sans-serif";
+    ctx.font = "500 40px Poppins, sans-serif";
     ctx.fillText(name ? name.toUpperCase() : "MY CGPA", W / 2, 300);
 
     // big CGPA
     ctx.fillStyle = "#F7F5EF";
-    ctx.font = "700 380px 'JetBrains Mono', monospace";
+    ctx.font = "700 380px Poppins, system-ui, sans-serif";
     ctx.fillText(cgpaText, W / 2, 700);
 
     // scale label
     ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.font = "500 34px Inter, sans-serif";
+    ctx.font = "500 34px Poppins, sans-serif";
     ctx.fillText(`on ${sys.max}.00 scale`, W / 2, 770);
 
     // class seal
     ctx.fillStyle = "#12B76A";
-    ctx.font = "700 78px 'Bricolage Grotesque', Inter, sans-serif";
+    ctx.font = "700 78px Poppins, system-ui, sans-serif";
     ctx.fillText((hasResult ? cls.short : "Nothing yet").toUpperCase(), W / 2, 900);
 
     // units line
     ctx.fillStyle = "rgba(255,255,255,0.6)";
-    ctx.font = "500 34px Inter, sans-serif";
+    ctx.font = "500 34px Poppins, sans-serif";
     ctx.fillText(`${shownUnits} credit units counted`, W / 2, 970);
 
     // goal
     if (predictor && predictor.verdict !== "impossible") {
       ctx.fillStyle = "#E8B23A";
-      ctx.font = "600 44px Inter, sans-serif";
+      ctx.font = "600 44px Poppins, sans-serif";
       ctx.fillText(`Chasing ${predictor.target.short}`, W / 2, 1120);
     }
 
     // footer
     ctx.fillStyle = "rgba(255,255,255,0.45)";
-    ctx.font = "600 34px 'JetBrains Mono', monospace";
+    ctx.font = "600 34px Poppins, system-ui, sans-serif";
     ctx.fillText(DOMAIN, W / 2, 1240);
 
     return canvas;
   };
 
-  const saveImage = () => {
+  const saveImage = async () => {
     const canvas = drawCard();
     if (!canvas) return;
+
+    // Get a PNG blob from the canvas.
+    const blob = await new Promise((resolve) =>
+      canvas.toBlob((b) => resolve(b), "image/png")
+    );
+    if (!blob) return;
+
+    const fileName = `cgpa-${cgpaText}.png`;
+    const file =
+      typeof File !== "undefined" ? new File([blob], fileName, { type: "image/png" }) : null;
+
+    // On phones (especially iPhone, where forced downloads open a blank tab),
+    // use the native share sheet — lets them Save to Photos or send to WhatsApp.
+    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "My CGPA" });
+        return;
+      } catch {
+        // user cancelled or share failed — fall through to download
+      }
+    }
+
+    // Desktop / fallback: download via an object URL.
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.download = `cgpa-${cgpaText}.png`;
-    link.href = canvas.toDataURL("image/png");
+    link.href = url;
+    link.download = fileName;
+    document.body.appendChild(link);
     link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   return (
     <div className="ncg-root">
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
         .ncg-root{
           --ink:#0B1F18; --ink2:#08130E; --paper:#F4F6F3; --card:#FFFFFF;
           --line:#E2E7E2; --muted:#5B6B62; --green:#0F8A5F; --green2:#12B76A;
           --gold:#E8B23A; --red:#E5484D; --text:#132A22;
-          font-family:Inter,system-ui,sans-serif; color:var(--text);
+          font-family:Poppins, system-ui, sans-serif; color:var(--text);
           background:var(--paper); min-height:100vh; padding:8px 16px 48px;
-          -webkit-font-smoothing:antialiased;
+          -webkit-font-smoothing:antialiased; overflow-x:hidden;
         }
-        .ncg-wrap{max-width:520px;margin:0 auto;}
+        .ncg-root *{box-sizing:border-box;}
+        .ncg-root input,.ncg-root select{min-width:0;max-width:100%;}
+        .ncg-wrap{max-width:520px;margin:0 auto;width:100%;}
         .ncg-topbar{position:sticky;top:0;z-index:30;display:flex;align-items:center;justify-content:space-between;
           gap:10px;padding:10px 4px;margin-bottom:4px;background:var(--paper);}
-        .ncg-logo{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:800;
+        .ncg-logo{font-family:Poppins, system-ui, sans-serif;font-weight:800;
           font-size:24px;letter-spacing:-0.5px;color:var(--ink);}
         .ncg-logo span{color:var(--green);}
         .ncg-topstat{display:flex;align-items:baseline;gap:8px;}
-        .ncg-topcgpa{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:22px;
+        .ncg-topcgpa{font-family:Poppins, system-ui, sans-serif;font-weight:700;font-size:22px;
           letter-spacing:-0.5px;color:var(--ink);}
-        .ncg-topclass{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:800;
+        .ncg-topclass{font-family:Poppins, system-ui, sans-serif;font-weight:800;
           font-size:13px;color:var(--green);}
         .ncg-scale{display:inline-flex;background:#E7ECE8;border-radius:999px;padding:3px;margin:16px 0 8px;}
         .ncg-scale button{border:0;background:transparent;font:inherit;font-size:13px;font-weight:600;
@@ -544,7 +590,7 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
         .ncg-score{width:78px;border:1px solid var(--line);border-radius:9px;padding:9px 10px;
           font:inherit;font-size:15px;text-align:center;background:#fff;box-sizing:border-box;}
         .ncg-score:focus{outline:2px solid var(--green2);border-color:transparent;}
-        .ncg-derived{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;
+        .ncg-derived{font-family:Poppins, system-ui, sans-serif;font-size:13px;font-weight:700;
           color:var(--green);background:#E9F5EE;border-radius:8px;padding:6px 10px;min-width:52px;text-align:center;}
         .ncg-panel{background:var(--card);border:1px solid var(--line);border-radius:16px;
           padding:16px;margin-top:14px;}
@@ -570,10 +616,10 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
         .ncg-nudge[data-tone="warn"]{background:#FDECEC;color:#8A2A2E;}
         .ncg-acc{padding:0;overflow:hidden;}
         .ncg-acc > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;padding:16px;
-          font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:800;font-size:15px;color:var(--ink);}
+          font-family:Poppins, system-ui, sans-serif;font-weight:800;font-size:15px;color:var(--ink);}
         .ncg-acc > summary::-webkit-details-marker{display:none;}
         .ncg-acc > summary > span{flex:1;}
-        .ncg-acc > summary small{font-family:Inter,sans-serif;font-weight:600;font-size:12px;color:var(--muted);}
+        .ncg-acc > summary small{font-family:Poppins, sans-serif;font-weight:600;font-size:12px;color:var(--muted);}
         .ncg-acc > summary::after{content:"⌄";color:var(--muted);font-size:18px;line-height:1;
           transform:translateY(-3px);transition:transform .2s;}
         .ncg-acc[open] > summary::after{transform:rotate(180deg);}
@@ -598,7 +644,7 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
         .ncg-ca-target{border:1px solid var(--line);border-radius:9px;padding:8px 8px;font:inherit;
           font-size:15px;font-weight:700;background:#fff;color:var(--text);}
         .ncg-ca-out{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;}
-        .ncg-ca-need{color:var(--text);} .ncg-ca-need b{font-family:'JetBrains Mono',monospace;color:var(--green);}
+        .ncg-ca-need{color:var(--text);} .ncg-ca-need b{font-family:Poppins, system-ui, sans-serif;color:var(--green);}
         .ncg-ca-ok{color:#0A6B45;font-weight:600;}
         .ncg-ca-no{color:#A21D22;font-weight:600;}
         .ncg-ca-floor{font-size:11px;font-weight:700;color:var(--muted);background:#EEF2EE;
@@ -613,9 +659,9 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
           border-radius:14px;padding:16px;color:#fff;border:1px solid rgba(232,178,58,0.3);text-align:center;}
         .ncg-plan-note{font-size:12px;color:rgba(255,255,255,0.6);text-transform:uppercase;
           letter-spacing:0.08em;font-weight:700;}
-        .ncg-proj-cgpa{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:56px;
+        .ncg-proj-cgpa{font-family:Poppins, system-ui, sans-serif;font-weight:700;font-size:56px;
           line-height:1.1;letter-spacing:-1px;}
-        .ncg-proj-class{font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:800;
+        .ncg-proj-class{font-family:Poppins, system-ui, sans-serif;font-weight:800;
           font-size:20px;color:var(--green2);margin-bottom:10px;}
         .ncg-proj-verdict .ncg-pill{font-size:13px;}
         .ncg-proj-hint{font-size:12px;color:rgba(255,255,255,0.6);margin:12px 0 0;line-height:1.5;}
@@ -652,14 +698,14 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
           border:1px solid rgba(232,178,58,0.35);}
         .ncg-result:before{content:"";position:absolute;inset:10px;border:1px solid rgba(232,178,58,0.18);
           border-radius:14px;pointer-events:none;}
-        .ncg-eyebrow{font-family:'JetBrains Mono',monospace;font-size:12px;letter-spacing:0.22em;
+        .ncg-eyebrow{font-family:Poppins, system-ui, sans-serif;font-size:12px;letter-spacing:0.22em;
           color:var(--gold);text-align:center;}
         .ncg-name{text-align:center;font-size:14px;color:rgba(255,255,255,0.7);margin-top:12px;font-weight:500;
           min-height:18px;}
-        .ncg-big{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:96px;line-height:1;
+        .ncg-big{font-family:Poppins, system-ui, sans-serif;font-weight:700;font-size:96px;line-height:1;
           text-align:center;margin:6px 0 2px;letter-spacing:-2px;}
         .ncg-scale-note{text-align:center;font-size:13px;color:rgba(255,255,255,0.5);}
-        .ncg-class{text-align:center;font-family:'Bricolage Grotesque',Inter,sans-serif;font-weight:800;
+        .ncg-class{text-align:center;font-family:Poppins, system-ui, sans-serif;font-weight:800;
           font-size:26px;color:var(--green2);margin-top:14px;}
         .ncg-units-note{text-align:center;font-size:13px;color:rgba(255,255,255,0.55);margin-top:4px;}
         .ncg-goal{text-align:center;font-size:14px;color:var(--gold);font-weight:600;margin-top:10px;}
@@ -670,10 +716,11 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
         .ncg-btn-img{background:#fff;color:var(--ink);border:1px solid rgba(255,255,255,0.25);}
         .ncg-btn-save{width:100%;margin-top:10px;background:var(--gold);color:#3d2c05;}
         .ncg-btn-save:disabled{opacity:0.6;cursor:default;}
+        .ncg-btn-wa:disabled,.ncg-btn-img:disabled{opacity:0.45;cursor:default;filter:saturate(0.6);}
         .ncg-name-input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;
           font:inherit;font-size:15px;background:#fff;box-sizing:border-box;margin-top:6px;}
         .ncg-pred{margin-top:8px;font-size:14px;line-height:1.5;}
-        .ncg-pred b{font-family:'JetBrains Mono',monospace;}
+        .ncg-pred b{font-family:Poppins, system-ui, sans-serif;}
         .ncg-pill{display:inline-block;font-size:12px;font-weight:700;padding:3px 9px;border-radius:999px;}
         .ncg-pill.ok{background:#E3F6EC;color:#0A6B45;}
         .ncg-pill.no{background:#FCE8E8;color:#A21D22;}
@@ -687,7 +734,7 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
           <div className="ncg-logo">Naija<span>CGPA</span></div>
           <div className="ncg-topstat">
             <span className="ncg-topcgpa">{cgpaText}</span>
-            <span className="ncg-topclass">{hasResult ? cls.short : "Nothing yet"}</span>
+            <span className="ncg-topclass">{hasResult ? "CGPA" : "Nothing yet"}</span>
           </div>
         </div>
 
@@ -992,37 +1039,27 @@ export default function CgpaCalculator({ onSave, saving = false, storage } = {})
             onChange={(e) => setName(e.target.value)}
           />
           <div className="ncg-actions">
-            <button className="ncg-btn ncg-btn-wa" onClick={shareWhatsApp}>Share to WhatsApp</button>
-            <button className="ncg-btn ncg-btn-img" onClick={saveImage}>Save card</button>
+            <button className="ncg-btn ncg-btn-wa" onClick={shareWhatsApp} disabled={!hasResult}>
+              Share to WhatsApp
+            </button>
+            <button className="ncg-btn ncg-btn-img" onClick={saveImage} disabled={!hasResult}>
+              Save card
+            </button>
           </div>
           {onSave && (
             <button
               className="ncg-btn ncg-btn-save"
-              disabled={saving}
+              disabled={saving || !hasResult}
               onClick={() =>
                 onSave({
-                  title: name || "My result",
-                  level,
-                  scale,
-                  cgpa: isFinite(shownCgpa) ? Number(shownCgpa.toFixed(2)) : null,
+                  cgpa: isFinite(shownCgpa) ? Number(round2(shownCgpa).toFixed(2)) : null,
                   className: cls.short,
                   unitsCounted: shownUnits,
-                  payload: {
-                    level,
-                    scale,
-                    inputMode,
-                    name,
-                    courses,
-                    priorSemesters,
-                    expungeFailedCarryovers,
-                    caWeight,
-                    semTargetGpa,
-                    remainingCourses,
-                  },
+                  draft: buildDraft(),
                 })
               }
             >
-              {saving ? "Saving…" : "Save my result to my account"}
+              {saving ? "Saving…" : saveLabel}
             </button>
           )}
         </div>

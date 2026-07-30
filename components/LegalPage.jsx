@@ -6,7 +6,7 @@ export default function LegalPage({ title, updated, children }) {
     <main className="legal">
       <style>{`
         .legal{max-width:720px;margin:0 auto;padding:24px 20px 60px;
-          font-family:Inter,system-ui,sans-serif;color:#1c2b24;line-height:1.65;}
+          font-family:Poppins, system-ui, sans-serif;color:#1c2b24;line-height:1.65;}
         .legal .back{font-size:13px;color:#0F8A5F;text-decoration:none;font-weight:600;}
         .legal h1{font-size:30px;margin:18px 0 4px;color:#0B1F18;letter-spacing:-0.5px;}
         .legal .updated{font-size:13px;color:#6b7a72;margin:0 0 28px;}
