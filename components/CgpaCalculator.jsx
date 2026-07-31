@@ -14,7 +14,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
  *   and swap the DOMAIN constant below for your real domain in the share text.
  */
 
-const DOMAIN = "naijacgpa.app"; // <-- change to your real domain
+const DOMAIN = "naijacgpa.com"; // <-- change to your real domain
 
 const LEVELS = {
   undergrad: {
@@ -152,6 +152,7 @@ export default function CgpaCalculator({
   const [remainingCourses, setRemainingCourses] = useState([]);
 
   const canvasRef = useRef(null);
+  const [cardModal, setCardModal] = useState(null); // dataURL for the save-image overlay
 
   // Re-validate every course whenever the grading system changes (level/scale).
   // If a course was entered by score, re-derive its grade; otherwise clamp any
@@ -514,40 +515,36 @@ export default function CgpaCalculator({
     return canvas;
   };
 
-  const saveImage = async () => {
+  // Convert a data URL to a File synchronously (so we can call the share sheet
+  // inside the tap gesture — iOS Safari rejects share() if we await first).
+  const dataURLToFile = (dataUrl, name) => {
+    const [head, b64] = dataUrl.split(",");
+    const mime = (head.match(/:(.*?);/) || [])[1] || "image/png";
+    const bin = atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+    return new File([arr], name, { type: mime });
+  };
+
+  const saveImage = () => {
     const canvas = drawCard();
     if (!canvas) return;
-
-    // Get a PNG blob from the canvas.
-    const blob = await new Promise((resolve) =>
-      canvas.toBlob((b) => resolve(b), "image/png")
-    );
-    if (!blob) return;
-
+    const dataUrl = canvas.toDataURL("image/png");
     const fileName = `cgpa-${cgpaText}.png`;
-    const file =
-      typeof File !== "undefined" ? new File([blob], fileName, { type: "image/png" }) : null;
 
-    // On phones (especially iPhone, where forced downloads open a blank tab),
-    // use the native share sheet — lets them Save to Photos or send to WhatsApp.
-    if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
-      try {
-        await navigator.share({ files: [file], title: "My CGPA" });
+    try {
+      const file = dataURLToFile(dataUrl, fileName);
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        // Called synchronously within the tap → works on iPhone.
+        navigator
+          .share({ files: [file], title: "My CGPA" })
+          .catch(() => setCardModal(dataUrl));
         return;
-      } catch {
-        // user cancelled or share failed — fall through to download
       }
-    }
+    } catch {}
 
-    // Desktop / fallback: download via an object URL.
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    // No share support → show the image in-app; user saves it directly.
+    setCardModal(dataUrl);
   };
 
   return (
@@ -717,6 +714,13 @@ export default function CgpaCalculator({
         .ncg-btn-save{width:100%;margin-top:10px;background:var(--gold);color:#3d2c05;}
         .ncg-btn-save:disabled{opacity:0.6;cursor:default;}
         .ncg-btn-wa:disabled,.ncg-btn-img:disabled{opacity:0.45;cursor:default;filter:saturate(0.6);}
+        .ncg-modal{position:fixed;inset:0;z-index:100;background:rgba(8,19,14,0.72);backdrop-filter:blur(4px);
+          display:flex;align-items:center;justify-content:center;padding:20px;}
+        .ncg-modal-box{background:#fff;border-radius:20px;padding:16px;max-width:360px;width:100%;text-align:center;}
+        .ncg-modal-img{width:100%;max-width:280px;border-radius:14px;display:block;margin:0 auto 12px;box-shadow:0 12px 30px rgba(0,0,0,0.2);}
+        .ncg-modal-hint{font-size:13px;color:var(--muted);margin:0 0 14px;line-height:1.5;}
+        .ncg-modal-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+        .ncg-modal-actions .ncg-btn{text-decoration:none;}
         .ncg-name-input{width:100%;border:1px solid var(--line);border-radius:10px;padding:11px 12px;
           font:inherit;font-size:15px;background:#fff;box-sizing:border-box;margin-top:6px;}
         .ncg-pred{margin-top:8px;font-size:14px;line-height:1.5;}
@@ -1232,6 +1236,23 @@ export default function CgpaCalculator({
           <br />Built for Nigerian students · {DOMAIN}
         </div>
       </div>
+
+      {cardModal && (
+        <div className="ncg-modal" onClick={() => setCardModal(null)}>
+          <div className="ncg-modal-box" onClick={(e) => e.stopPropagation()}>
+            <img className="ncg-modal-img" src={cardModal} alt="Your CGPA result card" />
+            <p className="ncg-modal-hint">On iPhone, press and hold the image to save it to Photos.</p>
+            <div className="ncg-modal-actions">
+              <a className="ncg-btn ncg-btn-img" href={cardModal} download={`cgpa-${cgpaText}.png`}>
+                Download
+              </a>
+              <button className="ncg-btn ncg-btn-wa" onClick={() => setCardModal(null)}>
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <canvas ref={canvasRef} style={{ display: "none" }} />
     </div>

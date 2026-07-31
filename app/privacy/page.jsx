@@ -3,7 +3,7 @@ import LegalPage from "@/components/LegalPage";
 // NOTE: Starter template — not legal advice. Replace the placeholders below
 // (contact email, effective date) and have it reviewed, including for Nigeria's
 // NDPR, before relying on it.
-const CONTACT = "support@yourdomain.com"; // <-- change this
+const CONTACT = "nexitafrica@gmail.com";
 
 export const metadata = {
   title: "Privacy Policy — NaijaCGPA",
@@ -51,13 +51,13 @@ export default function PrivacyPage() {
       </p>
 
       <h2>Service providers</h2>
-      <p>We share information only with providers that help us run NaijaCGPA:</p>
-      <ul>
-        <li><strong>Google</strong> — sign-in, and Google Analytics for usage statistics.</li>
-        <li><strong>Supabase</strong> — secure database and authentication.</li>
-        <li><strong>Resend</strong> — sending emails.</li>
-        <li><strong>Our hosting provider</strong> — serving the website.</li>
-      </ul>
+      <p>
+        We rely on a small number of trusted third parties to run NaijaCGPA — for sign-in,
+        anonymous usage analytics, secure hosting and storage of your data, and delivering our
+        emails. These providers may only process your information to provide their service to us,
+        and are bound to keep it secure. We use Google for sign-in and, through Google Analytics,
+        anonymous usage statistics.
+      </p>
 
       <h2>Cookies and analytics</h2>
       <p>

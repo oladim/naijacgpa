@@ -1,32 +1,37 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import { saveState, loadState } from "@/lib/results";
-import { localDraft } from "@/lib/localDraft";
+import { draftStore, purgeLegacyDraft } from "@/lib/localDraft";
 import AuthButton from "@/components/AuthButton";
 import CgpaCalculator from "@/components/CgpaCalculator";
 
 export default function CalculatorPage() {
   const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [saving, setSaving] = useState(false);
   const [initialState, setInitialState] = useState(null);
   const [hasRecord, setHasRecord] = useState(false);
   const [syncedAt, setSyncedAt] = useState(null);
 
   useEffect(() => {
-    if (!isSupabaseConfigured) return;
+    purgeLegacyDraft();
+    if (!isSupabaseConfigured) {
+      setAuthReady(true);
+      return;
+    }
     const supabase = createClient();
 
     const load = async (u) => {
+      // reset per-user view whenever the signed-in user changes
       setUser(u);
-      if (!u) {
-        setInitialState(null);
-        setHasRecord(false);
-        setSyncedAt(null);
-        return;
-      }
+      setInitialState(null);
+      setHasRecord(false);
+      setSyncedAt(null);
+      setAuthReady(true);
+      if (!u) return;
       try {
         const st = await loadState();
         if (st) {
@@ -43,6 +48,9 @@ export default function CalculatorPage() {
     );
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  // A localStorage store scoped to the current user (or "anon" when logged out).
+  const store = useMemo(() => draftStore(user?.id || "anon"), [user?.id]);
 
   const handleSave = async (snapshot) => {
     if (!isSupabaseConfigured) {
@@ -75,13 +83,16 @@ export default function CalculatorPage() {
         <AuthButton />
       </header>
 
-      <CgpaCalculator
-        onSave={handleSave}
-        saving={saving}
-        storage={localDraft}
-        initialState={initialState}
-        saveLabel={hasRecord ? "Update my account" : "Save to my account"}
-      />
+      {authReady && (
+        <CgpaCalculator
+          key={user?.id || "anon"}
+          onSave={handleSave}
+          saving={saving}
+          storage={store}
+          initialState={initialState}
+          saveLabel={hasRecord ? "Update my account" : "Save to my account"}
+        />
+      )}
 
       {user && syncedAt && (
         <p style={s.synced}>
@@ -93,6 +104,8 @@ export default function CalculatorPage() {
         <Link href="/privacy" style={s.link}>Privacy Policy</Link>
         <span style={s.dot}>·</span>
         <Link href="/terms" style={s.link}>Terms of Service</Link>
+        <span style={s.dot}>·</span>
+        <Link href="/admin" style={s.link}>Admin</Link>
       </footer>
     </main>
   );

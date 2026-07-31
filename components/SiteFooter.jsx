@@ -15,6 +15,7 @@ export default function SiteFooter() {
       <nav>
         <Link href="/privacy">Privacy</Link>
         <Link href="/terms">Terms</Link>
+        <Link href="/admin">Admin</Link>
       </nav>
     </footer>
   );
